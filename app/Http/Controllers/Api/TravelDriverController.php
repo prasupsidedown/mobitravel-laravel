@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\TravelDriver;
+use App\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -14,7 +14,7 @@ class TravelDriverController extends Controller
     // Publik — list semua driver active, opsional filter by ?route=
     public function index(Request $request)
     {
-        $query = TravelDriver::active();
+        $query = Agent::drivers();
 
         if ($request->filled('route')) {
             $query->byRoute($request->route);
@@ -32,7 +32,7 @@ class TravelDriverController extends Controller
     // Publik — detail 1 driver
     public function show($id)
     {
-        $driver = TravelDriver::active()->find($id);
+        $driver = Agent::drivers()->find($id);
 
         if (!$driver) {
             return response()->json([
@@ -52,9 +52,9 @@ class TravelDriverController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'             => 'required|string|max:255',
+            'agency_name'      => 'required|string|max:255',
             'phone'            => 'required|string|max:20',
-            'email'            => 'required|email|unique:travel_drivers,email',
+            'email'            => 'required|email|unique:agents,email',
             'password'         => 'required|string|min:8',
             'vehicle_type'     => 'required|string|max:100',
             'vehicle_capacity' => 'required|integer|min:1|max:100',
@@ -71,8 +71,8 @@ class TravelDriverController extends Controller
             ], 422);
         }
 
-        $driver = TravelDriver::create([
-            'name'             => $request->name,
+        $driver = Agent::create([
+            'agency_name'      => $request->agency_name,
             'phone'            => $request->phone,
             'email'            => $request->email,
             'password'         => Hash::make($request->password),
@@ -80,6 +80,7 @@ class TravelDriverController extends Controller
             'vehicle_capacity' => $request->vehicle_capacity,
             'price_per_day'    => $request->price_per_day,
             'routes'           => $request->routes,
+            'is_driver'        => true,
             'status'           => 'pending',
         ]);
 
@@ -94,7 +95,7 @@ class TravelDriverController extends Controller
     // Protected — driver update status ketersediaannya sendiri
     public function updateAvailability(Request $request, $id)
     {
-        $driver = TravelDriver::find($id);
+        $driver = Agent::where('is_driver', true)->find($id);
 
         if (!$driver) {
             return response()->json([

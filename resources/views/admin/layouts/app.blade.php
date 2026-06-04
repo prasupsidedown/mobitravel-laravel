@@ -243,6 +243,7 @@
     <ul class="sidebar-menu">
         <li><a href="{{ route('admin.dashboard') }}" class="@yield('menu-dashboard')">Dashboard</a></li>
         <li><a href="{{ route('admin.agents.index') }}" class="@yield('menu-agents')">Verifikasi Agen</a></li>
+        <li><a href="{{ route('admin.drivers.index') }}" class="@yield('menu-drivers')">Driver Travel</a></li>
         <li><a href="{{ route('admin.users.index') }}" class="@yield('menu-users')">Manajemen User</a></li>
         <li><a href="{{ route('admin.bookings.index') }}" class="@yield('menu-bookings')">Pemesanan</a></li>
     </ul>

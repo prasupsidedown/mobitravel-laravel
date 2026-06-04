@@ -5,28 +5,33 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Mail;
 
 class AgentVerificationController extends Controller
 {
-    // Daftar semua agen
+    // ==============================
+    // AGEN
+    // ==============================
+
+    // Daftar semua agen (is_driver = false)
     public function index(Request $request)
     {
         $status = $request->get('status', 'pending');
-        $agents = Agent::when($status, function($query, $status) {
-            return $query->where('status', $status);
-        })->orderBy('created_at', 'desc')->paginate(20);
-        
+
+        $agents = Agent::where('is_driver', false)
+            ->when($status, function ($query, $status) {
+                return $query->where('status', $status);
+            })->orderBy('created_at', 'desc')->paginate(20);
+
         return view('admin.agents.index', compact('agents', 'status'));
     }
-    
+
     // Detail agen
     public function show($id)
     {
         $agent = Agent::findOrFail($id);
         return view('admin.agents.show', compact('agent'));
     }
-    
+
     // Verifikasi / setujui agen
     public function verify($id)
     {
@@ -34,61 +39,85 @@ class AgentVerificationController extends Controller
         $agent->status = 'active';
         $agent->verified_at = now();
         $agent->save();
-        
-        // Kirim email notifikasi
-        // Mail::to($agent->email)->send(new AgentVerifiedMail($agent));
-        
-        return redirect()->route('admin.agents.index', ['status' => 'pending'])
-            ->with('success', "Agen {$agent->agency_name} telah diverifikasi.");
+
+        $route = $agent->is_driver ? 'admin.drivers.index' : 'admin.agents.index';
+
+        return redirect()->route($route, ['status' => 'pending'])
+            ->with('success', "Akun {$agent->agency_name} telah diverifikasi.");
     }
-    
-    // Tolak agen
+
+    // Tolak
     public function reject(Request $request, $id)
     {
         $request->validate([
             'reason' => 'required|string|min:10'
         ]);
-        
+
         $agent = Agent::findOrFail($id);
         $agent->status = 'suspended';
-        $agent->rejected_reason = $request->reason;
         $agent->save();
-        
-        // Kirim email penolakan
-        // Mail::to($agent->email)->send(new AgentRejectedMail($agent, $request->reason));
-        
-        return redirect()->route('admin.agents.index', ['status' => 'pending'])
-            ->with('success', "Agen {$agent->agency_name} telah ditolak.");
+
+        $route = $agent->is_driver ? 'admin.drivers.index' : 'admin.agents.index';
+
+        return redirect()->route($route, ['status' => 'pending'])
+            ->with('success', "Akun {$agent->agency_name} telah ditolak.");
     }
-    
-    // Hapus agen
+
+    // Hapus
     public function destroy($id)
     {
         $agent = Agent::findOrFail($id);
-        $agentName = $agent->agency_name;
+        $name = $agent->agency_name;
+        $isDriver = $agent->is_driver;
         $agent->delete();
-        
-        return redirect()->route('admin.agents.index')
-            ->with('success', "Agen {$agentName} telah dihapus.");
+
+        $route = $isDriver ? 'admin.drivers.index' : 'admin.agents.index';
+
+        return redirect()->route($route)
+            ->with('success', "Akun {$name} telah dihapus.");
     }
-    
-    // Suspend / blokir agen
+
+    // Suspend
     public function suspend($id)
     {
         $agent = Agent::findOrFail($id);
         $agent->status = 'suspended';
         $agent->save();
-        
-        return redirect()->back()->with('success', "Agen {$agent->agency_name} telah ditangguhkan.");
+
+        return redirect()->back()->with('success', "Akun {$agent->agency_name} telah ditangguhkan.");
     }
-    
-    // Aktifkan kembali agen
+
+    // Aktifkan kembali
     public function activate($id)
     {
         $agent = Agent::findOrFail($id);
         $agent->status = 'active';
         $agent->save();
-        
-        return redirect()->back()->with('success', "Agen {$agent->agency_name} telah diaktifkan kembali.");
+
+        return redirect()->back()->with('success', "Akun {$agent->agency_name} telah diaktifkan kembali.");
+    }
+
+    // ==============================
+    // DRIVER
+    // ==============================
+
+    // Daftar semua driver (is_driver = true)
+    public function indexDrivers(Request $request)
+    {
+        $status = $request->get('status', 'pending');
+
+        $drivers = Agent::where('is_driver', true)
+            ->when($status, function ($query, $status) {
+                return $query->where('status', $status);
+            })->orderBy('created_at', 'desc')->paginate(20);
+
+        return view('admin.drivers.index', compact('drivers', 'status'));
+    }
+
+    // Detail driver
+    public function showDriver($id)
+    {
+        $driver = Agent::where('is_driver', true)->findOrFail($id);
+        return view('admin.drivers.show', compact('driver'));
     }
 }

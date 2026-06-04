@@ -37,7 +37,7 @@ Route::prefix('agen')->name('agen.')->group(function () {
     // Dashboard (butuh login)
     Route::middleware(['auth:agent'])->group(function () {
         Route::get('/dashboard', [AgenDashboardController::class, 'index'])->name('dashboard');
-        
+
         // CRUD Destinasi
         Route::get('/destinations', [AgenDestinationController::class, 'index'])->name('destinations.index');
         Route::get('/destinations/create', [AgenDestinationController::class, 'create'])->name('destinations.create');
@@ -45,10 +45,10 @@ Route::prefix('agen')->name('agen.')->group(function () {
         Route::get('/destinations/{id}/edit', [AgenDestinationController::class, 'edit'])->name('destinations.edit');
         Route::put('/destinations/{id}', [AgenDestinationController::class, 'update'])->name('destinations.update');
         Route::delete('/destinations/{id}', [AgenDestinationController::class, 'destroy'])->name('destinations.destroy');
-        
+
         // CRUD Paket Wisata
         Route::resource('tour-packages', App\Http\Controllers\Agen\TourPackageController::class);
-        
+
         // Upload & hapus foto destinasi
         Route::post('/destinations/{id}/upload-image', [App\Http\Controllers\Agen\DestinationController::class, 'uploadImage'])->name('destinations.upload-image');
         Route::delete('/destinations/image/{id}', [App\Http\Controllers\Agen\DestinationController::class, 'deleteImage'])->name('destinations.delete-image');
@@ -82,6 +82,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     Route::middleware(['auth:admin'])->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+        // Manajemen Agen
         Route::get('/agents', [AgentVerificationController::class, 'index'])->name('agents.index');
         Route::get('/agents/{id}', [AgentVerificationController::class, 'show'])->name('agents.show');
         Route::post('/agents/{id}/verify', [AgentVerificationController::class, 'verify'])->name('agents.verify');
@@ -89,14 +91,23 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/agents/{id}', [AgentVerificationController::class, 'destroy'])->name('agents.destroy');
         Route::post('/agents/{id}/suspend', [AgentVerificationController::class, 'suspend'])->name('agents.suspend');
         Route::post('/agents/{id}/activate', [AgentVerificationController::class, 'activate'])->name('agents.activate');
-        
+
+        // Manajemen Driver Travel (pakai AgentVerificationController yang sama)
+        Route::get('/drivers', [AgentVerificationController::class, 'indexDrivers'])->name('drivers.index');
+        Route::get('/drivers/{id}', [AgentVerificationController::class, 'showDriver'])->name('drivers.show');
+        Route::post('/drivers/{id}/verify', [AgentVerificationController::class, 'verify'])->name('drivers.verify');
+        Route::post('/drivers/{id}/reject', [AgentVerificationController::class, 'reject'])->name('drivers.reject');
+        Route::delete('/drivers/{id}', [AgentVerificationController::class, 'destroy'])->name('drivers.destroy');
+        Route::post('/drivers/{id}/suspend', [AgentVerificationController::class, 'suspend'])->name('drivers.suspend');
+        Route::post('/drivers/{id}/activate', [AgentVerificationController::class, 'activate'])->name('drivers.activate');
+
         // Manajemen User
         Route::get('/users', [App\Http\Controllers\Admin\UserManagementController::class, 'index'])->name('users.index');
         Route::get('/users/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'show'])->name('users.show');
         Route::put('/users/{id}/block', [App\Http\Controllers\Admin\UserManagementController::class, 'block'])->name('users.block');
         Route::put('/users/{id}/activate', [App\Http\Controllers\Admin\UserManagementController::class, 'activate'])->name('users.activate');
         Route::delete('/users/{id}', [App\Http\Controllers\Admin\UserManagementController::class, 'destroy'])->name('users.destroy');
-        
+
         // Manajemen Booking
         Route::get('/bookings', [App\Http\Controllers\Admin\BookingManagementController::class, 'index'])->name('bookings.index');
         Route::get('/bookings/{id}', [App\Http\Controllers\Admin\BookingManagementController::class, 'show'])->name('bookings.show');
