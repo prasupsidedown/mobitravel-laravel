@@ -7,6 +7,10 @@ use App\Http\Controllers\Agen\DestinationController as AgenDestinationController
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\AgentVerificationController;
+use App\Http\Controllers\Driver\DashboardController as DriverDashboardController;
+use App\Http\Controllers\Driver\BookingController as DriverBookingController;
+use App\Http\Controllers\Driver\RouteController as DriverRouteController;
+use App\Http\Controllers\Driver\ProfileController as DriverProfileController;
 
 // Halaman landing
 Route::get('/', function () {
@@ -72,6 +76,39 @@ Route::prefix('agen')->name('agen.')->group(function () {
 });
 
 // ==============================================
+// ROUTE UNTUK DRIVER
+// ==============================================
+Route::prefix('driver')->name('driver.')->group(function () {
+
+    // Auth — pakai controller agen karena tabel sama
+    Route::get('/login', [AgenAuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AgenAuthController::class, 'login'])->name('login.post');
+    Route::post('/logout', [AgenAuthController::class, 'logout'])->name('logout');
+
+    // Dashboard & fitur driver (butuh login)
+    Route::middleware(['auth:agent'])->group(function () {
+        Route::get('/dashboard', [DriverDashboardController::class, 'index'])->name('dashboard');
+
+        // Rute & Ketersediaan
+        Route::get('/routes', [DriverRouteController::class, 'index'])->name('routes.index');
+        Route::put('/routes', [DriverRouteController::class, 'update'])->name('routes.update');
+        Route::put('/availability', [DriverRouteController::class, 'updateAvailability'])->name('availability.update');
+
+        // Pemesanan
+        Route::get('/bookings', [DriverBookingController::class, 'index'])->name('bookings.index');
+        Route::get('/bookings/{id}', [DriverBookingController::class, 'show'])->name('bookings.show');
+        Route::put('/bookings/{id}/confirm', [DriverBookingController::class, 'confirm'])->name('bookings.confirm');
+        Route::put('/bookings/{id}/complete', [DriverBookingController::class, 'complete'])->name('bookings.complete');
+        Route::put('/bookings/{id}/cancel', [DriverBookingController::class, 'cancel'])->name('bookings.cancel');
+
+        // Profil
+        Route::get('/profile', [DriverProfileController::class, 'index'])->name('profile.index');
+        Route::put('/profile', [DriverProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [DriverProfileController::class, 'changePassword'])->name('profile.password');
+    });
+});
+
+// ==============================================
 // ROUTE UNTUK ADMIN
 // ==============================================
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -92,7 +129,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/agents/{id}/suspend', [AgentVerificationController::class, 'suspend'])->name('agents.suspend');
         Route::post('/agents/{id}/activate', [AgentVerificationController::class, 'activate'])->name('agents.activate');
 
-        // Manajemen Driver Travel (pakai AgentVerificationController yang sama)
+        // Manajemen Driver Travel
         Route::get('/drivers', [AgentVerificationController::class, 'indexDrivers'])->name('drivers.index');
         Route::get('/drivers/{id}', [AgentVerificationController::class, 'showDriver'])->name('drivers.show');
         Route::post('/drivers/{id}/verify', [AgentVerificationController::class, 'verify'])->name('drivers.verify');
