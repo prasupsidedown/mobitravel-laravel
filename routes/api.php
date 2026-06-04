@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\TourPackageController;
 use App\Http\Controllers\Api\VehicleController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\ReviewController;
+use App\Http\Controllers\Api\TravelDriverController; // ← BARU
 
 // ==============================================
 // PUBLIC ROUTES (tanpa login)
@@ -28,6 +29,11 @@ Route::get('/tour-packages/{id}/check-availability', [TourPackageController::cla
 Route::get('/vehicles', [VehicleController::class, 'index']);
 Route::get('/vehicles/{id}', [VehicleController::class, 'show']);
 
+// ─── BARU: Travel Driver (publik) ─────────────────────────────────────────
+Route::get('/travel-drivers', [TravelDriverController::class, 'index']);
+Route::get('/travel-drivers/{id}', [TravelDriverController::class, 'show']);
+Route::post('/travel-drivers/register', [TravelDriverController::class, 'register']);
+
 // ==============================================
 // PROTECTED ROUTES (pakai token)
 // ==============================================
@@ -48,4 +54,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/bookings/{bookingCode}/payment', [BookingController::class, 'getPayment']);
     Route::post('/bookings/{bookingCode}/confirm-payment', [BookingController::class, 'confirmPayment']);
     Route::delete('/bookings/{id}', [BookingController::class, 'cancel']);
+
+    // ─── BARU: Driver update ketersediaan dirinya sendiri ─────────────────
+    Route::patch('/travel-drivers/{id}/availability', [TravelDriverController::class, 'updateAvailability']);
 });
